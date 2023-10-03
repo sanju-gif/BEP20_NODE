@@ -1,3 +1,3 @@
-const { sendBep } = require('./bep_20.controller')
+const { sendBep } = require("./bep_20.controller");
 
-module.exports = {sendBep}
+module.exports = { sendBep };
