@@ -1,4 +1,4 @@
-const {ethers}  = require('ethers');
+const { ethers } = require('ethers');
 require('dotenv').config();
 
 // Replace these with your actual values
@@ -6,8 +6,7 @@ const provider = new ethers.providers.JsonRpcProvider(process.env.BNBTestnetUrl)
 const privateKey = process.env.USER1_PK;
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
-// ABI (Application Binary Interface) of the smart contract
-const contractABI = require("./BEP20_ABI.json")
+const contractABI = require('../config/BEP20_ABI.json')
 // Connect to the wallet using the private keys
 const wallet = new ethers.Wallet(privateKey, provider);
 
@@ -18,18 +17,23 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 const toAddress = process.env.RecipientAddress;
 
 // Amount to transfer
-const amount = ethers.utils.parseEther('1.0'); // 1 ETH in this example
 
-// Call the transfer function of the smart contract
-async function sendTransaction() {
+
+const sendBep = async (req, res) => {
   try {
-    const transaction = await contract.transfer(toAddress, amount);
+    const { toAddress, amount } = req.body
+    if (!toAddress) {
+      return res.status(500).send({ msg: "Please pass recipient address." })
+    }
+    if (!amount) {
+      return res.status(500).send({ msg: "Amount is required." })
+    }
+    const transaction = await contract.transfer(toAddress, ethers.utils.formatUnits(amount, 0));
     await transaction.wait();
-    console.log('Transaction sent successfully:', transaction.hash);
+    return res.send({ msg: "Transaction sent successfully", "status": "success", "hash": transaction.hash }).status(200)
   } catch (error) {
     console.error('Error sending transaction:', error);
   }
 }
 
-// // Call the function to send the transaction
-sendTransaction();
+module.exports = { sendBep }
